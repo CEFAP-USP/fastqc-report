@@ -641,15 +641,8 @@ def main():
         required=True,
         help='Sequencer name (default: %(default)s)')
     parser.add_argument(
-        '--runBCL2FASTQ', '-b',
-        default=True, action="store_false",
-        help='Run BCL2FASTQ to create fastq files (default: %(default)s)')
-    parser.add_argument(
         '--runName', '-r',
         default=None, help='Name of the run (default: %(default)s)')
-    # parser.add_argument(
-    #     '--fastqPath', '-f',
-    #     nargs=1, default='Data/Intensities/BaseCalls/', help='Path with fastq files of the run (default: %(default)s)')
 
     args = parser.parse_args()
 
@@ -669,9 +662,6 @@ def main():
         raise Exception(
             "Path of the run not found. \n %s" % os.path.join(WORKING_DIR, args.runPath))
 
-    # if(not os.path.exists(os.path.join(WORKING_DIR, args.fastqPath))):
-    #     raise Exception("Path with fastq not found. \n %s" % os.path.join(WORKING_DIR, args.fastqPath))
-
     print 'path existe'
 
     if(not check_analysed_folder(args, file_status)):
@@ -682,14 +672,10 @@ def main():
     print 'path checked'
 
     fastq_path = ''
-    if(args.runBCL2FASTQ):
-        fastq_path = os.path.join(WORKING_DIR, args.runPath, '%s_fastq/' % args.runName)
-        if(not run_blc2fastq(args, file_status, fastq_path)):
-            raise Exception("Error on bcl2fastq. Execution aborted.")
-    else:
-        fastq_path = os.path.join(WORKING_DIR, args.runPath, FASTQ_PATH)
 
-    print(fastq_path)
+    fastq_path = os.path.join(WORKING_DIR, args.runPath, '%s_fastq/' % args.runName)
+    if(not run_blc2fastq(args, file_status, fastq_path)):
+        raise Exception("Error on bcl2fastq. Execution aborted.")
 
     print 'converted'
 
@@ -703,7 +689,7 @@ def main():
 
     print 'generated pdf'
 
-    build_bcl2fastq_report_tex_table(args)
+    build_bcl2fastq_report_tex_table(args, fastq_path)
 
     # TODO: Unlink all fastq files
     # TODO: Remove logfile

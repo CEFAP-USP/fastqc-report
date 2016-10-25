@@ -26,7 +26,6 @@ import csv
 import re
 from collections import OrderedDict
 from bs4 import BeautifulSoup
-import stat
 
 
 BCL2FASTQ_PATH = '/usr/local/bin/bcl2fastq'
@@ -44,7 +43,8 @@ FASTQ_PATH = 'Data/Intensities/BaseCalls/'
 # TODO: criar arquivo com data e hora
 # TODO: salvar o log onde: no working_dir ou no runpath?
 # LOGFILE = open(os.path.join(WORKING_DIR, 'logfile.log'), 'w+')
-LOGFILE = os.open(os.path.join(WORKING_DIR, 'logfile.log'), os.O_WRONLY|os.O_CREAT, 0o600)
+LOGFILE = os.open(os.path.join(
+    WORKING_DIR, 'logfile.log'), os.O_WRONLY | os.O_CREAT, 0o600)
 
 
 def get_status_folder(file_status):
@@ -91,7 +91,8 @@ def get_bcl2fastq_report(args, fastq_path):
             #     WORKING_DIR, args.runPath, '%s_fastq' % args.runName,
             #     'Reports', 'html', 'index.html'), 'r').read()
 
-            html = open(os.path.join(fastq_path,
+            html = open(os.path.join(
+                fastq_path,
                 'Reports', 'html', 'index.html'), 'r').read()
 
             soup = BeautifulSoup(html, 'html.parser')
@@ -101,7 +102,8 @@ def get_bcl2fastq_report(args, fastq_path):
             # report = open(os.path.join(
             #     WORKING_DIR, args.runPath, '%s_fastq' % args.runName,
             #     'Reports', 'html', src), 'r').read()
-            report = open(os.path.join(fastq_path,
+            report = open(os.path.join(
+                fastq_path,
                 'Reports', 'html', src), 'r').read()
 
             soup = BeautifulSoup(report, 'html.parser')
@@ -475,8 +477,7 @@ def run_fastqc(args, file_status, fastq_path):
                 try:
                     os.unlink(f)
                 except OSError as e:
-                    'It was not possible to unlink the file \n%s. Error: %s' % (f,e)
-
+                    'It was not possible to unlink the file \n%s. Error: %s' % (f, e)
 
     fs = open(file_status, 'w+')
     fs.write('reported\n')
@@ -539,8 +540,7 @@ def compile_tex(args, file_status, fastq_path):
         #     os.path.join(
         #         args.runPath, '%s_fastq' % args.runName, path_fastqc))):
         #     return False
-        if(not os.path.exists(
-            os.path.join(fastq_path, path_fastqc))):
+        if(not os.path.exists(os.path.join(fastq_path, path_fastqc))):
             return False
         images_dir.append(s_image)
         reports_dir.append(report_dir)
@@ -636,20 +636,21 @@ def main():
         default=None, help='Path with the files of the run (default: %(default)s)')
     parser.add_argument(
         '--sequencerName', '-s',
-        default='miseq', 
+        default='miseq',
         choices=['miseq', 'nextseq'],
         required=True,
         help='Sequencer name (default: %(default)s)')
     parser.add_argument(
         '--runBCL2FASTQ', '-b',
-        default=True, action="store_false", help='Run BCL2FASTQ to create fastq files (default: %(default)s)')
+        default=True, action="store_false",
+        help='Run BCL2FASTQ to create fastq files (default: %(default)s)')
     parser.add_argument(
         '--runName', '-r',
         default=None, help='Name of the run (default: %(default)s)')
     # parser.add_argument(
     #     '--fastqPath', '-f',
     #     nargs=1, default='Data/Intensities/BaseCalls/', help='Path with fastq files of the run (default: %(default)s)')
-    
+
     args = parser.parse_args()
 
     # if(not args.runPath):
@@ -665,7 +666,8 @@ def main():
         args.runName = os.path.join(WORKING_DIR, args.runPath).rsplit('/', 1)[-1]
 
     if(not os.path.exists(os.path.join(WORKING_DIR, args.runPath))):
-        raise Exception("Path of the run not found. \n %s" % os.path.join(WORKING_DIR, args.runPath))
+        raise Exception(
+            "Path of the run not found. \n %s" % os.path.join(WORKING_DIR, args.runPath))
 
     # if(not os.path.exists(os.path.join(WORKING_DIR, args.fastqPath))):
     #     raise Exception("Path with fastq not found. \n %s" % os.path.join(WORKING_DIR, args.fastqPath))

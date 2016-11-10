@@ -17,7 +17,6 @@
 # 5. Send email with the PDF created on 4.1
 #   5.1 sendmail ...
 
-# import optparse
 import argparse
 import os
 import subprocess
@@ -26,6 +25,7 @@ import csv
 import re
 from collections import OrderedDict
 from bs4 import BeautifulSoup
+import datetime
 
 
 BCL2FASTQ_PATH = '/usr/local/bin/bcl2fastq'
@@ -37,14 +37,30 @@ STATUS_FILE = 'run_report'
 # informações do experimento
 SAMPLESHEET = 'SampleSheet.csv'
 BCL2FASTQ_REPORT = 'laneBarcode.html'
-FASTQ_PATH = 'Data/Intensities/BaseCalls/'
 
-# TODO: escrever no log tudo o que foi feito e as msg de erro
-# TODO: criar arquivo com data e hora
-# TODO: salvar o log onde: no working_dir ou no runpath?
-# LOGFILE = open(os.path.join(WORKING_DIR, 'logfile.log'), 'w+')
-LOGFILE = os.open(os.path.join(
-    WORKING_DIR, 'logfile.log'), os.O_WRONLY | os.O_CREAT, 0o600)
+
+def getDatetime():
+    try:
+        d = datetime.datetime.now()
+        return "{0}{1}{2}_{3}{4}{5}".format(
+            d.day,
+            d.month,
+            d.year,
+            d.hour,
+            d.minute,
+            d.second)
+    except Exception as e:
+        raise e
+
+
+def getLogfile():
+    try:
+        d = getDatetime()
+        logfile = os.open(os.path.join(
+            WORKING_DIR, 'logfile-%s.log' % d), os.O_WRONLY | os.O_CREAT, 0o600)
+        return logfile
+    except Exception as e:
+        raise e
 
 
 def get_status_folder(file_status):
@@ -249,7 +265,7 @@ def check_analysed_folder(args, file_status):
     return True
 
 
-def run_blc2fastq(args, file_status, fastq_path):
+def run_blc2fastq(args, file_status, fastq_path, logfile):
 
     status = get_status_folder(file_status)
     # se for converted, eh pq já foi feita a conversão
@@ -283,13 +299,13 @@ def run_blc2fastq(args, file_status, fastq_path):
     fs.close()
 
     retProcess = subprocess.Popen(
-        cl, 0, stdout=LOGFILE, stderr=LOGFILE, shell=False)
+        cl, 0, stdout=logfile, stderr=logfile, shell=False)
     retCode = retProcess.wait()
     if(retCode != 0):
         fs = open(file_status, 'w+')
         fs.write('error\n')
         fs.close()
-        print os.system('tail %s' % LOGFILE)
+        print os.system('tail %s' % logfile)
         return False
 
     fs = open(file_status, 'w+')
@@ -398,7 +414,7 @@ def rename_fastq_file(args, fastq_path):
         raise e
 
 
-def run_fastqc(args, file_status, fastq_path):
+def run_fastqc(args, file_status, fastq_path, logfile):
     status = get_status_folder(file_status)
     if(status and status in ['reported']):
         return True
@@ -465,7 +481,7 @@ def run_fastqc(args, file_status, fastq_path):
         fs.close()
 
         retProcess = subprocess.Popen(
-            cl, 0, stdout=LOGFILE, stderr=LOGFILE, shell=True)
+            cl, 0, stdout=logfile, stderr=logfile, shell=True)
         retCode = retProcess.wait()
         if(retCode != 0):
             fs = open(file_status, 'w+')
@@ -488,7 +504,7 @@ def run_fastqc(args, file_status, fastq_path):
     return True
 
 
-def compile_tex(args, file_status, fastq_path):
+def compile_tex(args, file_status, fastq_path, logfile):
     status = get_status_folder(file_status)
     if(status and status in ['compiled']):
         return True
@@ -599,7 +615,7 @@ def compile_tex(args, file_status, fastq_path):
         fs.close()
 
         retProcess = subprocess.Popen(
-            cl, 0, stdout=LOGFILE, stderr=LOGFILE, shell=False)
+            cl, 0, stdout=logfile, stderr=logfile, shell=False)
         retCode = retProcess.wait()
         if(retCode != 0):
             fs = open(file_status, 'w+')
@@ -673,18 +689,20 @@ def main():
 
     fastq_path = ''
 
+    logfile = getLogfile()
+
     fastq_path = os.path.join(WORKING_DIR, args.runPath, '%s_fastq/' % args.runName)
-    if(not run_blc2fastq(args, file_status, fastq_path)):
+    if(not run_blc2fastq(args, file_status, fastq_path, logfile)):
         raise Exception("Error on bcl2fastq. Execution aborted.")
 
     print 'converted'
 
-    if(not run_fastqc(args, file_status, fastq_path)):
+    if(not run_fastqc(args, file_status, fastq_path, logfile)):
         raise Exception("Error on fastqc. Execution aborted.")
 
     print 'reported'
 
-    if(not compile_tex(args, file_status, fastq_path)):
+    if(not compile_tex(args, file_status, fastq_path, logfile)):
         raise Exception("Error on compile tex. Execution aborted.")
 
     print 'generated pdf'

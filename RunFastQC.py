@@ -488,12 +488,15 @@ def run_fastqc(args, file_status, fastq_path, logfile):
             fs.write('error\n')
             fs.close()
             return False
+
+        files = fasta_files[lane]
         for f in files:
-            if(os.path.islink(f)):
+            if(os.path.islink(os.path.join(fastq_path, f))):
                 try:
-                    os.unlink(f)
+                    os.unlink(os.path.join(fastq_path, f))
                 except OSError as e:
-                    'It was not possible to unlink the file \n%s. Error: %s' % (f, e)
+                    'It was not possible to unlink the file \n%s. Error: %s' % (
+                        os.path.join(fastq_path, f), e)
 
     fs = open(file_status, 'w+')
     fs.write('reported\n')

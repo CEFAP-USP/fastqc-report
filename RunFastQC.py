@@ -712,9 +712,10 @@ def main():
 
     build_bcl2fastq_report_tex_table(args, fastq_path)
 
-    # TODO: Unlink all fastq files
-    # TODO: Remove logfile
-    # TODO: Rename FastQC report using R1,R2
+    try:
+        os.remove(file_status)
+    except Exception as e:
+        raise e
 
 
 if __name__ == '__main__':

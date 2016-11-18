@@ -553,7 +553,12 @@ def main():
     file_status = os.path.join(WORKING_DIR, args.runPath, STATUS_FILE)
 
     if(not args.runName):
-        args.runName = os.path.join(WORKING_DIR, args.runPath).rsplit('/', 1)[-1]
+        if(args.runPath.endswith('/')):
+            args.runName = os.path.join(WORKING_DIR, args.runPath).rsplit('/', 2)[-2]
+        elif('/' in args.runPath):
+            args.runName = os.path.join(WORKING_DIR, args.runPath).rsplit('/', 1)[-1]
+        else:
+            args.runName = os.path.join(WORKING_DIR, args.runPath)
 
     if(not os.path.exists(os.path.join(WORKING_DIR, args.runPath))):
         raise Exception(

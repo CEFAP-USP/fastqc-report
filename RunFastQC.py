@@ -98,14 +98,9 @@ def get_run_details(args):
 
 def get_bcl2fastq_report(args, fastq_path):
     try:
-        # if(os.path.exists(
-        #         os.path.join(WORKING_DIR, args.runPath, '%s_fastq' % args.runName, 'Reports'))):
+
         if(os.path.exists(
                 os.path.join(fastq_path, 'Reports'))):
-
-            # html = open(os.path.join(
-            #     WORKING_DIR, args.runPath, '%s_fastq' % args.runName,
-            #     'Reports', 'html', 'index.html'), 'r').read()
 
             html = open(os.path.join(
                 fastq_path,
@@ -115,9 +110,7 @@ def get_bcl2fastq_report(args, fastq_path):
             for fr in soup.find_all('frame'):
                 src = fr.get('src')
             src = src.replace('lane.html', BCL2FASTQ_REPORT)
-            # report = open(os.path.join(
-            #     WORKING_DIR, args.runPath, '%s_fastq' % args.runName,
-            #     'Reports', 'html', src), 'r').read()
+
             report = open(os.path.join(
                 fastq_path,
                 'Reports', 'html', src), 'r').read()
@@ -157,7 +150,6 @@ def get_bcl2fastq_report(args, fastq_path):
 def rreplace(s, old, new, occurrence):
 
     li = s.rsplit(old, occurrence)
-
     return new.join(li)
 
 
@@ -174,30 +166,25 @@ def build_run_details_tex_table(args, data):
 
         for key in data.keys():
             # HEADER
-            # print key
             values = data.get(key)
             tex_table += "\multicolumn{%s}{|c|}{%s} \\\\ \hline\n" % (
                 ncoluns, key.replace('[', '').replace(']', ''))
             if(key == '[HEADER]'):
-                # values = data.get(key)
                 for value in values:
                     tex_table += "%s & \multicolumn{%s}{l|}{%s} \\\\ \hline\n" % (
                         value[0].replace('_', '\_'), ncoluns - 1, value[1].replace('_', '\_'))
             # READS
             elif(key == '[READS]'):
-                # values = data.get(key)
                 for value in values:
                     tex_table += "\multicolumn{%s}{|l|}{%s} \\\\ \hline\n" % (
                         ncoluns, value[0].replace('_', '\_'))
             # SETTINGS
             elif(key == '[SETTINGS]'):
-                # values = data.get(key)
                 for value in values:
                     tex_table += "%s & \multicolumn{%s}{l|}{%s} \\\\ \hline\n" % (
                         value[0].replace('_', '\_'), ncoluns - 1, value[1].replace('_', '\_'))
             # DATA
             elif(key == '[DATA]'):
-                # values = data.get(key)
                 for value in values:
                     tex_table += ''.join('%s & ' % v.replace('_', '\_') for v in value)
                     tex_table = rreplace(tex_table, '&', ' ', 1)
@@ -208,11 +195,11 @@ def build_run_details_tex_table(args, data):
 
 def build_bcl2fastq_report_tex_table(args, fastq_path):
     ncoluns, data = get_bcl2fastq_report(args, fastq_path)
-    # print data
+
     if(data):
         tex_table = OrderedDict([])
         headers = data.get('h2')
-        # print headers
+
         for i, head in enumerate(headers):
 
             if(head == 'Top Unknown Barcodes'):
@@ -220,7 +207,6 @@ def build_bcl2fastq_report_tex_table(args, fastq_path):
             else:
                 tb = data.get('table-%i' % i)
 
-                # print i, head
                 tex = ''
 
                 cols = len(tb['head'])
@@ -268,29 +254,19 @@ def check_analysed_folder(args, file_status):
 def run_blc2fastq(args, file_status, fastq_path, logfile):
 
     status = get_status_folder(file_status)
-    # se for converted, eh pq já foi feita a conversão
+
     if(status and status in ['converted']):
         return True
 
-    # se já tem um fastq dentro é pq ja foi feita a conversao, pra nao rodar de novo
-    # if(os.path.exists(os.path.join(args.runPath, '%s_fastq' % args.runName))):
     if(os.path.exists(fastq_path)):
         return True
 
-    # cl = [
-    #     '/usr/local/bin/bcl2fastq',
-    #     '--runfolder-dir',
-    #     args.runPath,
-    #     '--output-dir',
-    #     os.path.join(args.runPath, '%s_fastq' % args.runName)]
     cl = [
         '/usr/local/bin/bcl2fastq',
         '--runfolder-dir',
         args.runPath,
         '--output-dir',
         fastq_path]
-
-    # print cl
 
     print 'running blc2fastq'
 
@@ -323,8 +299,7 @@ def rename_fastq_file(args, fastq_path):
 
         for read in range(1, 3):
             npattern = 'L{0}_L00{0}_R{1}_{2}.'
-            # regex = '.*L00%d.*\\..*\\Z(?ms)'
-            # regex = '.*L00%d.*\\.gz\\Z(?ms)'
+
             regex = '.*L00%d\\_R%d.*\\.gz\\Z(?ms)'
             lane = 'L00%d'
             if(args.sequencerName.upper() == 'NEXTSEQ'):
@@ -333,26 +308,13 @@ def rename_fastq_file(args, fastq_path):
                 lanes = 1
             for l in range(1, lanes + 1):  # NextSeq has 4 lanes
                 clane = lane % l
-                # print clane
-                reobj = re.compile(regex % (l, read))
 
-                # files = [f for f in os.listdir(
-                #     os.path.join(args.runPath, '%s_fastq' % args.runName)) if reobj.match(f)]
+                reobj = re.compile(regex % (l, read))
 
                 files = [f for f in os.listdir(fastq_path) if reobj.match(f)]
 
-                # filedirs = [f for f in os.listdir(
-                #     os.path.join(args.runPath, '%s_fastq' % args.runName)) if os.path.isdir(
-                #         os.path.join(os.path.join(args.runPath, '%s_fastq' % args.runName), f))]
-
                 filedirs = [f for f in os.listdir(fastq_path) if os.path.isdir(
                     os.path.join(fastq_path, f))]
-
-                # for d in filedirs:
-                #     filelist = [f for f in os.listdir(
-                #         os.path.join(args.runPath, '%s_fastq' % args.runName, d)) if reobj.match(f)]
-                #     for f in filelist:
-                #         files.append(os.path.join(d, f))
 
                 for d in filedirs:
                     filelist = [f for f in os.listdir(
@@ -360,9 +322,6 @@ def rename_fastq_file(args, fastq_path):
                     for f in filelist:
                         files.append(os.path.join(d, f))
 
-                # files = [f for f in os.listdir(
-                #     os.path.join(args.runPath, '%s_fastq' % args.runName)) if reobj.match(f)]
-                # print files
                 nfiles = []
 
                 for i, f in enumerate(files):
@@ -378,16 +337,6 @@ def rename_fastq_file(args, fastq_path):
 
                     f_npattern = npattern.format(l, read, group)
                     nname = f_npattern + ext
-                    # print name, nname, ext
-                    # if(not os.path.islink(
-                    #     os.path.join(
-                    #         args.runPath, '%s_fastq' % args.runName, nname))):
-                    #     os.symlink(
-                    #         os.path.join(
-                    #             WORKING_DIR, args.runPath, '%s_fastq' % args.runName, f),
-                    #         os.path.join(
-                    #             WORKING_DIR, args.runPath, '%s_fastq' % args.runName, nname))
-                    #     nfiles.append(nname)
 
                     if(not os.path.islink(
                         os.path.join(
@@ -407,9 +356,7 @@ def rename_fastq_file(args, fastq_path):
                         fastq_files[clane] = (nfiles)
 
         return fastq_files
-        # else:  # MISEQ
-        #     pass
-        #     return fastq_files
+
     except Exception, e:
         raise e
 
@@ -419,39 +366,18 @@ def run_fastqc(args, file_status, fastq_path, logfile):
     if(status and status in ['reported']):
         return True
 
-    # precisa ter uma pasta fastq dentro do pathrun para rodar o fastqc
-    # if(not os.path.exists(os.path.join(args.runPath, '%s_fastq' % args.runName))):
     if(not os.path.exists(fastq_path)):
         return False
 
     fasta_files = rename_fastq_file(args, fastq_path)
-    # print 'fasta files', fasta_files
+
     if(not fasta_files):
         return False
-
-    # fileList = [
-    #     os.path.normcase(f) for f in os.listdir(
-    #         os.path.join(args.runPath, '%s_fastq' % args.runName))
-    #     if(f.endswith('gz'))]
-
-    # for f in fileList:
-    #     name = os.path.splitext(f)[0].split('.')[0]
-    #     if(os.path.exists(
-    #         os.path.join(
-    #             args.runPath, '%s_fastq' % args.runName, '%s_fastqc' % name))):
-    #         return True
-
-    # TODO: a partir do filelist, vou extrair os nomes das amostras
-    # samples = []
-
-    # fileList = [' '.join(
-    #     os.path.join(args.runPath, '%s_fastq/%s' % (args.runName, f)) for f in fileList)]
 
     # Check if there already is a fastq folder
     regex = '.*\\.html\\Z(?ms)'
     reobj = re.compile(regex)
-    # paths = [f for f in os.listdir(
-    #     os.path.join(args.runPath, '%s_fastq' % args.runName)) if reobj.match(f)]
+
     paths = [f for f in os.listdir(fastq_path) if reobj.match(f)]
     if(paths):
         return True
@@ -465,14 +391,10 @@ def run_fastqc(args, file_status, fastq_path, logfile):
         lane = 'L00%d' % l
         files = fasta_files[lane]
 
-        # fileList = [' '.join(
-        #     os.path.join(args.runPath, '%s_fastq/%s' % (args.runName, f)) for f in files)]
         fileList = [' '.join(
             os.path.join(fastq_path, f) for f in files)]
 
         cl = ['/data/runs/FastQC/FastQC/fastqc --extract --casava -t 8 ' + fileList[0]]
-
-        # print cl
 
         print 'running fastqc'
 
@@ -512,53 +434,22 @@ def compile_tex(args, file_status, fastq_path, logfile):
     if(status and status in ['compiled']):
         return True
 
-    # fileList = [
-    #     os.path.normcase(f) for f in os.listdir(
-    #         os.path.join(args.runPath, '%s_fastq' % args.runName))
-    #     if(f.endswith('gz'))]
-
     images_dir = []
     reports_dir = []
 
-    # precisa ter uma pasta fastqc dentro do pathrun/fastq para pegar os resultados do fastqc
-    # for f in fileList:
-    #     name = os.path.splitext(f)[0].split('.')[0]
-    #     s_image = os.path.join(
-    #         args.runPath, '%s_fastq' % args.runName, '%s_fastqc' % name, 'Images')
-    #     report_dir = os.path.join(
-    #         WORKING_DIR, args.runPath, REPORTS_PATH, name)
-    #     if(not os.path.exists(
-    #         os.path.join(
-    #             args.runPath, '%s_fastq' % args.runName, '%s_fastqc' % name))):
-    #         return False
-    #     images_dir.append(s_image)
-    #     reports_dir.append(report_dir)
-
-    # if(args.sequencerName.upper() == 'NEXTSEQ'):
-    #     lanes = 4
-    # else:
-    #     lanes = 1
-
     regex = '.*\\.html\\Z(?ms)'
     reobj = re.compile(regex)
-    # paths = [f for f in os.listdir(
-    #     os.path.join(args.runPath, '%s_fastq' % args.runName)) if reobj.match(f)]
+
     paths = [f for f in os.listdir(fastq_path) if reobj.match(f)]
 
     for path in paths:
         path_fastqc = path.split('.', 1)[0]
-        # print path_fastqc
 
-        # s_image = os.path.join(
-        #     args.runPath, '%s_fastq' % args.runName, path_fastqc, 'Images')
         s_image = os.path.join(fastq_path, path_fastqc, 'Images')
 
         report_dir = os.path.join(
             WORKING_DIR, args.runPath, REPORTS_PATH, path_fastqc)
-        # if(not os.path.exists(
-        #     os.path.join(
-        #         args.runPath, '%s_fastq' % args.runName, path_fastqc))):
-        #     return False
+
         if(not os.path.exists(os.path.join(fastq_path, path_fastqc))):
             return False
         images_dir.append(s_image)
@@ -576,7 +467,6 @@ def compile_tex(args, file_status, fastq_path, logfile):
     data = get_run_details(args)
     tex_columns_table, tex_table_run_details = build_run_details_tex_table(args, data)
 
-    # if(args.sequencerName.upper() == 'NEXTSEQ'):
     tex_table_bcl2fastq_report = build_bcl2fastq_report_tex_table(args, fastq_path)
 
     for image_dir, report_dir in zip(images_dir, reports_dir):
@@ -589,7 +479,6 @@ def compile_tex(args, file_status, fastq_path, logfile):
         read = report_dir.rsplit('_', 2)[1]  # R1 or R2
         new_rel = new_rel.replace("$READ$", read)
 
-        # if(args.sequencerName.upper() == 'NEXTSEQ'):
         for i, key in enumerate(tex_table_bcl2fastq_report.keys()):
             char = chr(i + ord('A'))
             tex = tex_table_bcl2fastq_report.get(key)
@@ -602,14 +491,15 @@ def compile_tex(args, file_status, fastq_path, logfile):
         tex.write(new_rel)
         tex.close()
 
+        filename = '{0}-L00{1}-{2}'.format(REPORT_FILE.rsplit('.', 1)[0], lane, read)
+
         cl = [
             'pdflatex',
             '-output-directory',
             os.path.join(WORKING_DIR, args.runPath, REPORTS_PATH, report_dir),
+            '--jobname=%s' % filename,
             os.path.join(WORKING_DIR, args.runPath, REPORTS_PATH, report_dir, REPORT_FILE)
         ]
-
-        # print cl
 
         print 'compiling tex'
 
@@ -640,13 +530,6 @@ def send_email():
 
 
 def main():
-    # op = optparse.OptionParser()
-    # op.add_option('-r', '--runName', help='Name of the run', default=None)
-    # op.add_option('-p', '--runPath', help='Path with the files of the run', default=None)
-    # op.add_option('-s', '--sequencerName', help='Sequencer name', default=None)
-    # op.add_option('-f', '--fastqPath', help='Path with fastQ files of the run', default=None)
-
-    # args, args = op.parse_args()
 
     parser = argparse.ArgumentParser(description='Generate a PDF report with FastQC analysis')
 
@@ -665,11 +548,6 @@ def main():
 
     args = parser.parse_args()
 
-    # if(not args.runPath):
-    #     op.error("Parameter Path of the run not found")
-    # if(not args.sequencerName):
-    #     op.error("Parameter Sequencer name not found")
-
     args.sequencerName = args.sequencerName.upper()
 
     file_status = os.path.join(WORKING_DIR, args.runPath, STATUS_FILE)
@@ -681,7 +559,7 @@ def main():
         raise Exception(
             "Path of the run not found. \n %s" % os.path.join(WORKING_DIR, args.runPath))
 
-    print 'path existe'
+    print 'path exist'
 
     if(not check_analysed_folder(args, file_status)):
         raise Exception(

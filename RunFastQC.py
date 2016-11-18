@@ -602,10 +602,13 @@ def compile_tex(args, file_status, fastq_path, logfile):
         tex.write(new_rel)
         tex.close()
 
+        filename = '{0}-L00{1}-{2}'.format(REPORT_FILE.rsplit('.', 1)[0], lane, read)
+
         cl = [
             'pdflatex',
             '-output-directory',
             os.path.join(WORKING_DIR, args.runPath, REPORTS_PATH, report_dir),
+            '--jobname=%s' % filename,
             os.path.join(WORKING_DIR, args.runPath, REPORTS_PATH, report_dir, REPORT_FILE)
         ]
 
@@ -681,7 +684,7 @@ def main():
         raise Exception(
             "Path of the run not found. \n %s" % os.path.join(WORKING_DIR, args.runPath))
 
-    print 'path existe'
+    print 'path exist'
 
     if(not check_analysed_folder(args, file_status)):
         raise Exception(

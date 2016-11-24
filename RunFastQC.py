@@ -92,7 +92,7 @@ def get_run_details(args):
                     lines[key] = v
 
             return lines
-    except Exception, e:
+    except Exception as e:
         raise e
 
 
@@ -143,7 +143,7 @@ def get_bcl2fastq_report(args, fastq_path):
                             ncolums = len(cols)
 
             return ncolums, result
-    except Exception, e:
+    except Exception as e:
         raise e
 
 
@@ -268,7 +268,7 @@ def run_blc2fastq(args, file_status, fastq_path, logfile):
         '--output-dir',
         fastq_path]
 
-    print 'running blc2fastq'
+    print('running blc2fastq')
 
     fs = open(file_status, 'w+')
     fs.write('running\n')
@@ -281,14 +281,14 @@ def run_blc2fastq(args, file_status, fastq_path, logfile):
         fs = open(file_status, 'w+')
         fs.write('error\n')
         fs.close()
-        print os.system('tail %s' % logfile)
+        print(os.system('tail %s' % logfile))
         return False
 
     fs = open(file_status, 'w+')
     fs.write('converted\n')
     fs.close()
 
-    print 'finished'
+    print('finished')
 
     return True
 
@@ -357,7 +357,7 @@ def rename_fastq_file(args, fastq_path):
 
         return fastq_files
 
-    except Exception, e:
+    except Exception as e:
         raise e
 
 
@@ -396,7 +396,7 @@ def run_fastqc(args, file_status, fastq_path, logfile):
 
         cl = ['/data/runs/FastQC/FastQC/fastqc --extract --casava -t 8 ' + fileList[0]]
 
-        print 'running fastqc'
+        print('running fastqc')
 
         fs = open(file_status, 'w+')
         fs.write('running\n')
@@ -424,7 +424,7 @@ def run_fastqc(args, file_status, fastq_path, logfile):
     fs.write('reported\n')
     fs.close()
 
-    print 'finished'
+    print('finished')
 
     return True
 
@@ -501,7 +501,7 @@ def compile_tex(args, file_status, fastq_path, logfile):
             os.path.join(WORKING_DIR, args.runPath, REPORTS_PATH, report_dir, REPORT_FILE)
         ]
 
-        print 'compiling tex'
+        print('compiling tex')
 
         fs = open(file_status, 'w+')
         fs.write('running\n')
@@ -520,7 +520,7 @@ def compile_tex(args, file_status, fastq_path, logfile):
     fs.write('compiled\n')
     fs.close()
 
-    print 'tex compiled'
+    print('tex compiled')
 
     return True
 
@@ -553,20 +553,25 @@ def main():
     file_status = os.path.join(WORKING_DIR, args.runPath, STATUS_FILE)
 
     if(not args.runName):
-        args.runName = os.path.join(WORKING_DIR, args.runPath).rsplit('/', 1)[-1]
+        if(args.runPath.endswith('/')):
+            args.runName = os.path.join(WORKING_DIR, args.runPath).rsplit('/', 2)[-2]
+        elif('/' in args.runPath):
+            args.runName = os.path.join(WORKING_DIR, args.runPath).rsplit('/', 1)[-1]
+        else:
+            args.runName = os.path.join(WORKING_DIR, args.runPath)
 
     if(not os.path.exists(os.path.join(WORKING_DIR, args.runPath))):
         raise Exception(
             "Path of the run not found. \n %s" % os.path.join(WORKING_DIR, args.runPath))
 
-    print 'path exist'
+    print('path exist')
 
     if(not check_analysed_folder(args, file_status)):
         raise Exception(
             'The folder has the status "%s". Execution aborted.' %
             get_status_folder(file_status).strip())
 
-    print 'path checked'
+    print('path checked')
 
     fastq_path = ''
 
@@ -576,17 +581,17 @@ def main():
     if(not run_blc2fastq(args, file_status, fastq_path, logfile)):
         raise Exception("Error on bcl2fastq. Execution aborted.")
 
-    print 'converted'
+    print('converted')
 
     if(not run_fastqc(args, file_status, fastq_path, logfile)):
         raise Exception("Error on fastqc. Execution aborted.")
 
-    print 'reported'
+    print('reported')
 
     if(not compile_tex(args, file_status, fastq_path, logfile)):
         raise Exception("Error on compile tex. Execution aborted.")
 
-    print 'generated pdf'
+    print('generated pdf')
 
     build_bcl2fastq_report_tex_table(args, fastq_path)
 

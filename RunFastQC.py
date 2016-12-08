@@ -186,7 +186,8 @@ def build_run_details_tex_table(args, data):
             # DATA
             elif(key == '[DATA]'):
                 for value in values:
-                    tex_table += ''.join('%s & ' % v.replace('_', '\_') for v in value)
+                    tex_table += ''.join('%s & ' % v.replace('\\', '_').replace(
+                        '_', '\_') for v in value)
                     tex_table = rreplace(tex_table, '&', ' ', 1)
                     tex_table += '\\\\ \hline\n'
 
